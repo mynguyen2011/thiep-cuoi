@@ -19,12 +19,12 @@
   try { data = await fetch("data/wedding.json?t=" + Date.now(), { cache: "no-store" }).then((r) => r.json()); }
   catch { app.innerHTML = '<div class="loading">Không mở được thiệp. Kiểm tra mạng rồi tải lại trang.</div>'; return; }
   const api = data.sheetUrl || "";
-  if (!api) { data.rsvpOpen = false; data.wishesOpen = false; }
+
   if (data.groom && data.bride) document.title = "Thiệp cưới " + data.groom + " & " + data.bride;
-  const getWishes = () => api && data.wishesOpen !== false
+  const getWishes = () => api
     ? fetch(api + (api.includes("?") ? "&" : "?") + "action=wishes").then((r) => r.json()).catch(() => [])
     : Promise.resolve([]);
-  app.innerHTML = render(data, { wishes: [] });
+  app.innerHTML = render(data, { wishes: [], noForms: !api });
   tick();
   getWishes().then((w) => { const el = document.getElementById("wishList"); if (el) el.innerHTML = wishesHtml(w); });
 

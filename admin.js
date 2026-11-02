@@ -1,6 +1,6 @@
 // Trang admin bản GitHub Pages: đăng nhập bằng token GitHub, lưu thiệp bằng cách commit vào kho
 (async function () {
-  const { THEMES, render, tick, toast, esc } = Invite;
+  const { THEMES, FONTS, DEFAULT_FONTS, layout, sectionName, render, tick, toast, esc } = Invite;
   const $ = (s) => document.querySelector(s);
   const SITE = location.href.replace(/admin\.html.*$/, "").replace(/[?#].*$/, "");
   let GH = null;            // {owner, repo, branch, token}
@@ -79,10 +79,10 @@
     const d = structuredClone(draft);
     ["cover", "gQr", "bQr"].forEach((k) => (d[k] = src(d[k])));
     d.album = (d.album || []).map(src);
-    if (!d.sheetUrl) { d.rsvpOpen = false; d.wishesOpen = false; }
+    if (Array.isArray(d.sections)) d.sections = d.sections.map((x) => (x.custom ? { ...x, image: src(x.image) } : x));
     return d;
   }
-  function paint() { $("#app").innerHTML = render(viewData(), { preview: true, wishes }); tick(); }
+  function paint() { $("#app").innerHTML = render(viewData(), { preview: true, wishes, noForms: !draft.sheetUrl }); tick(); }
 
   const F = (id, label, hint, ph, type = "text") => `<label class="fl">${label}${hint ? `<span class="hint">${hint}</span>` : ""}${type === "area" ? `<textarea id="f-${id}" data-k="${id}" placeholder="${esc(ph)}"></textarea>` : `<input id="f-${id}" data-k="${id}" type="${type}" placeholder="${esc(ph)}">`}</label>`;
   const G = (title, sub, inner, open) => `<details class="grp"${open ? " open" : ""}><summary><span>${title}<small>${sub}</small></span></summary><div class="grp-in">${inner}</div></details>`;
@@ -96,16 +96,17 @@
   </div>
   <div class="ed-body" id="p-content">
     <div class="tip">Điền từng mục bên dưới, thiệp bên cạnh đổi ngay khi bạn gõ. Mục để trống sẽ tự ẩn. Bấm <b>Lưu thiệp</b> để khách thấy bản mới.${draft.sample ? `<div style="margin-top:8px">Các ô đang có nội dung ví dụ. <button class="btn ghost" type="button" id="clearSample">Xoá hết ví dụ</button></div>` : ""}</div>
-    ${G("1. Màu & phong cách", "Chọn mẫu, bật song ngữ", `<div class="themes" id="themes">${Object.entries(THEMES).map(([k, t]) => `<button type="button" data-theme="${k}" style="background:${t.bg};color:${t.ac}" aria-label="${t.name}">${t.motif}</button>`).join("")}</div><div class="themes-l">${Object.values(THEMES).map((t) => `<span>${t.name}</span>`).join("")}</div><label class="chk"><input type="checkbox" id="f-bilingual" data-k="bilingual"> Hiện thêm tiếng Anh cho khách nước ngoài</label>`, true)}
-    ${G("2. Cô dâu & chú rể", "Tên in to trên bìa thiệp", `<div class="two">${F("groom", "Tên chú rể", "Tên gọi, 2–3 chữ", "VD: Minh Quân")}${F("bride", "Tên cô dâu", "", "VD: Thảo Vy")}</div>`, true)}
-    ${G("3. Ngày cưới", "Ngày giờ tiệc, ngày âm lịch", `<div class="two">${F("date", "Ngày tiệc cưới", "", "", "date")}${F("time", "Giờ đón khách", "", "", "time")}</div>${F("lunar", "Ngày âm lịch", "Ghi giống thiệp giấy, có thể để trống", "VD: Nhằm ngày 12 tháng 11 năm Bính Ngọ")}`)}
-    ${G("4. Nơi tổ chức tiệc", "Nhà hàng, sảnh, địa chỉ, bản đồ", `${F("venue", "Tên nhà hàng / nơi tổ chức", "", "VD: Trung tâm Tiệc cưới Hoa Sen")}${F("hall", "Sảnh", "Để trống nếu tổ chức tại nhà", "VD: Sảnh Ngọc Lan")}${F("address", "Địa chỉ", "", "VD: 18 Đường Hoa Sen, Quận 3, TP.HCM")}${F("map", "Link Google Maps", "Mở Google Maps, tìm nhà hàng, bấm Chia sẻ → Sao chép đường liên kết. Để trống thì thiệp tự tìm theo địa chỉ.", "https://maps.app.goo.gl/...", "url")}`)}
-    ${G("5. Gia đình hai bên", "Tên cha mẹ, lời mời", `${F("groomParents", "Cha mẹ chú rể", "Mỗi người một dòng", "Ông Nguyễn Văn A\nBà Trần Thị B", "area")}${F("groomHome", "Địa chỉ nhà trai", "Có thể để trống", "VD: Quận 3, TP.HCM")}${F("brideParents", "Cha mẹ cô dâu", "Mỗi người một dòng", "Ông Lê Văn C\nBà Phạm Thị D", "area")}${F("brideHome", "Địa chỉ nhà gái", "Có thể để trống", "VD: TP. Thủ Đức")}${F("message", "Lời mời", "", "Trân trọng kính mời quý khách đến dự...", "area")}`)}
-    ${G("6. Các lễ trong ngày", "Lễ vu quy, lễ thành hôn (không bắt buộc)", `<div class="two">${F("ev1Label", "Tên lễ 1", "", "Lễ vu quy")}${F("ev1Time", "Giờ & ngày", "", "08:00 · 20/12/2026")}</div>${F("ev1Place", "Nơi làm lễ 1", "", "Tư gia nhà gái")}<div class="two">${F("ev2Label", "Tên lễ 2", "", "Lễ thành hôn")}${F("ev2Time", "Giờ & ngày", "", "10:00 · 20/12/2026")}</div>${F("ev2Place", "Nơi làm lễ 2", "", "Tư gia nhà trai")}`)}
-    ${G("7. Ảnh cưới", "1 ảnh bìa và tối đa 12 ảnh album", `<label class="fl">Ảnh bìa<span class="hint">Ảnh dọc, rõ mặt hai bạn</span><input type="file" id="f-cover" accept="image/*"></label><div class="thumbs" id="coverThumb"></div><label class="fl">Album ảnh<span class="hint">Chọn nhiều ảnh cùng lúc được. Ảnh tự thu nhỏ để thiệp mở nhanh.</span><input type="file" id="f-album" accept="image/*" multiple></label><div class="thumbs" id="albumThumbs"></div>`)}
-    ${G("8. Chuyện tình & lời cảm ơn", "Vài dòng kỷ niệm", `${F("story", "Câu chuyện của hai bạn", "Để trống nếu không muốn hiện", "Gặp nhau năm..., sau ... năm yêu nhau...", "area")}${F("thanks", "Lời cảm ơn cuối thiệp", "", "Sự hiện diện của quý khách là niềm vinh hạnh...", "area")}`)}
-    ${G("9. Xác nhận tham dự & lời chúc", "Nối Google Sheets, bật/tắt form, số liên hệ", `${F("sheetUrl", "Link Google Apps Script (Web app)", "Dán link kết thúc bằng /exec, xem hướng dẫn trong thư mục google-sheets. Để trống thì form xác nhận và lời chúc sẽ ẩn.", "https://script.google.com/macros/s/.../exec", "url")}${F("sheetLink", "Link Google Sheet của bạn", "Để mở nhanh danh sách khách ở tab Khách mời", "https://docs.google.com/spreadsheets/d/...", "url")}<label class="chk"><input type="checkbox" id="f-rsvpOpen" data-k="rsvpOpen"> Cho khách gửi xác nhận tham dự</label><label class="chk"><input type="checkbox" id="f-wishesOpen" data-k="wishesOpen"> Cho khách gửi lời chúc</label><div class="two">${F("gName", "Người liên hệ 1", "", "Nhà trai / Anh Quân")}${F("gContact", "Số điện thoại", "", "0901 234 567", "tel")}</div><div class="two">${F("bName", "Người liên hệ 2", "", "Nhà gái / Chị Vy")}${F("bContact", "Số điện thoại", "", "0907 654 321", "tel")}</div>`)}
-    ${G("10. Hộp mừng cưới", "Số tài khoản và mã QR ngân hàng", `<div class="tip">Mở app ngân hàng, vào "Mã QR nhận tiền", chụp màn hình rồi tải lên đây. Để trống nếu không muốn hiện.</div><b style="font-size:13px">Nhà trai</b><div class="two">${F("gBank", "Ngân hàng", "", "Vietcombank")}${F("gAcc", "Số tài khoản", "", "0123 4567 890")}</div>${F("gHolder", "Chủ tài khoản", "", "NGUYEN MINH QUAN")}<label class="fl">Ảnh mã QR nhà trai<input type="file" id="f-gQr" accept="image/*"></label><div class="thumbs" id="gQrThumb"></div><b style="font-size:13px">Nhà gái</b><div class="two">${F("bBank", "Ngân hàng", "", "Techcombank")}${F("bAcc", "Số tài khoản", "", "1903 5555 2468")}</div>${F("bHolder", "Chủ tài khoản", "", "LE THAO VY")}<label class="fl">Ảnh mã QR nhà gái<input type="file" id="f-bQr" accept="image/*"></label><div class="thumbs" id="bQrThumb"></div>`)}
+    ${G("1. Màu & phong cách", "Chọn mẫu, phông chữ, song ngữ", `<div class="themes" id="themes">${Object.entries(THEMES).map(([k, t]) => `<button type="button" data-theme="${k}" style="background:${t.bg};color:${t.ac}" aria-label="${t.name}">${t.motif}</button>`).join("")}</div><div class="themes-l">${Object.values(THEMES).map((t) => `<span>${t.name}</span>`).join("")}</div><label class="chk"><input type="checkbox" id="f-bilingual" data-k="bilingual"> Hiện thêm tiếng Anh cho khách nước ngoài</label><b style="font-size:13px;margin-top:4px">Phông chữ</b><label class="fl">Chữ tên cô dâu chú rể<select data-font="script">${FONTS.script.map((f) => `<option value="${esc(f[0])}">${esc(f[0])}</option>`).join("")}</select></label><div class="fontprev" id="fp-script"></div><div class="two"><label class="fl">Chữ tiêu đề<select data-font="display">${FONTS.display.map((f) => `<option value="${esc(f[0])}">${esc(f[0])}</option>`).join("")}</select></label><label class="fl">Chữ nội dung<select data-font="body">${FONTS.body.map((f) => `<option value="${esc(f[0])}">${esc(f[0])}</option>`).join("")}</select></label></div><label class="fl">Cỡ chữ tên<select id="f-nameSize" data-k="nameSize"><option value="s">Nhỏ</option><option value="m">Vừa</option><option value="l">Lớn</option></select></label>`, true)}
+    ${G("2. Bố cục & các mục", "Ẩn/hiện, sắp xếp, căn trái–giữa–phải, thêm mục mới", `<div class="tip">Bấm ▲▼ để đổi thứ tự, ☑ để ẩn/hiện, chọn căn lề Trái · Giữa · Phải cho từng mục. Mục bạn tự thêm thì xoá được.</div><div class="lay" id="layout"></div><button class="btn sec2" type="button" id="addSec">＋ Thêm mục mới</button>`, true)}
+    ${G("3. Cô dâu & chú rể", "Tên in to trên bìa thiệp", `<div class="two">${F("groom", "Tên chú rể", "Tên gọi, 2–3 chữ", "VD: Minh Quân")}${F("bride", "Tên cô dâu", "", "VD: Thảo Vy")}</div>`, true)}
+    ${G("4. Ngày cưới", "Ngày giờ tiệc, ngày âm lịch", `<div class="two">${F("date", "Ngày tiệc cưới", "", "", "date")}${F("time", "Giờ đón khách", "", "", "time")}</div>${F("lunar", "Ngày âm lịch", "Ghi giống thiệp giấy, có thể để trống", "VD: Nhằm ngày 12 tháng 11 năm Bính Ngọ")}`)}
+    ${G("5. Nơi tổ chức tiệc", "Nhà hàng, sảnh, địa chỉ, bản đồ", `${F("venue", "Tên nhà hàng / nơi tổ chức", "", "VD: Trung tâm Tiệc cưới Hoa Sen")}${F("hall", "Sảnh", "Để trống nếu tổ chức tại nhà", "VD: Sảnh Ngọc Lan")}${F("address", "Địa chỉ", "", "VD: 18 Đường Hoa Sen, Quận 3, TP.HCM")}${F("map", "Link Google Maps", "Mở Google Maps, tìm nhà hàng, bấm Chia sẻ → Sao chép đường liên kết. Để trống thì thiệp tự tìm theo địa chỉ.", "https://maps.app.goo.gl/...", "url")}`)}
+    ${G("6. Gia đình hai bên", "Tên cha mẹ, lời mời", `${F("groomParents", "Cha mẹ chú rể", "Mỗi người một dòng", "Ông Nguyễn Văn A\nBà Trần Thị B", "area")}${F("groomHome", "Địa chỉ nhà trai", "Có thể để trống", "VD: Quận 3, TP.HCM")}${F("brideParents", "Cha mẹ cô dâu", "Mỗi người một dòng", "Ông Lê Văn C\nBà Phạm Thị D", "area")}${F("brideHome", "Địa chỉ nhà gái", "Có thể để trống", "VD: TP. Thủ Đức")}${F("message", "Lời mời", "", "Trân trọng kính mời quý khách đến dự...", "area")}`)}
+    ${G("7. Các lễ trong ngày", "Lễ vu quy, lễ thành hôn (không bắt buộc)", `<div class="two">${F("ev1Label", "Tên lễ 1", "", "Lễ vu quy")}${F("ev1Time", "Giờ & ngày", "", "08:00 · 20/12/2026")}</div>${F("ev1Place", "Nơi làm lễ 1", "", "Tư gia nhà gái")}<div class="two">${F("ev2Label", "Tên lễ 2", "", "Lễ thành hôn")}${F("ev2Time", "Giờ & ngày", "", "10:00 · 20/12/2026")}</div>${F("ev2Place", "Nơi làm lễ 2", "", "Tư gia nhà trai")}`)}
+    ${G("8. Ảnh cưới", "1 ảnh bìa và tối đa 12 ảnh album", `<label class="fl">Ảnh bìa<span class="hint">Ảnh dọc, rõ mặt hai bạn</span><input type="file" id="f-cover" accept="image/*"></label><div class="thumbs" id="coverThumb"></div><label class="fl">Album ảnh<span class="hint">Chọn nhiều ảnh cùng lúc được. Ảnh tự thu nhỏ để thiệp mở nhanh.</span><input type="file" id="f-album" accept="image/*" multiple></label><div class="thumbs" id="albumThumbs"></div>`)}
+    ${G("9. Chuyện tình & lời cảm ơn", "Vài dòng kỷ niệm", `${F("story", "Câu chuyện của hai bạn", "Để trống nếu không muốn hiện", "Gặp nhau năm..., sau ... năm yêu nhau...", "area")}${F("thanks", "Lời cảm ơn cuối thiệp", "", "Sự hiện diện của quý khách là niềm vinh hạnh...", "area")}`)}
+    ${G("10. Xác nhận tham dự & lời chúc", "Nối Google Sheets, số liên hệ", `${F("sheetUrl", "Link Google Apps Script (Web app)", "Dán link kết thúc bằng /exec, xem hướng dẫn trong thư mục google-sheets. Để trống thì form xác nhận và lời chúc sẽ ẩn.", "https://script.google.com/macros/s/.../exec", "url")}${F("sheetLink", "Link Google Sheet của bạn", "Để mở nhanh danh sách khách ở tab Khách mời", "https://docs.google.com/spreadsheets/d/...", "url")}<div class="tip">Muốn ẩn form xác nhận hoặc sổ lời chúc, bỏ tick ở mục 2. Bố cục.</div><div class="two">${F("gName", "Người liên hệ 1", "", "Nhà trai / Anh Quân")}${F("gContact", "Số điện thoại", "", "0901 234 567", "tel")}</div><div class="two">${F("bName", "Người liên hệ 2", "", "Nhà gái / Chị Vy")}${F("bContact", "Số điện thoại", "", "0907 654 321", "tel")}</div>`)}
+    ${G("11. Hộp mừng cưới", "Số tài khoản và mã QR ngân hàng", `<div class="tip">Mở app ngân hàng, vào "Mã QR nhận tiền", chụp màn hình rồi tải lên đây. Để trống nếu không muốn hiện.</div><b style="font-size:13px">Nhà trai</b><div class="two">${F("gBank", "Ngân hàng", "", "Vietcombank")}${F("gAcc", "Số tài khoản", "", "0123 4567 890")}</div>${F("gHolder", "Chủ tài khoản", "", "NGUYEN MINH QUAN")}<label class="fl">Ảnh mã QR nhà trai<input type="file" id="f-gQr" accept="image/*"></label><div class="thumbs" id="gQrThumb"></div><b style="font-size:13px">Nhà gái</b><div class="two">${F("bBank", "Ngân hàng", "", "Techcombank")}${F("bAcc", "Số tài khoản", "", "1903 5555 2468")}</div>${F("bHolder", "Chủ tài khoản", "", "LE THAO VY")}<label class="fl">Ảnh mã QR nhà gái<input type="file" id="f-bQr" accept="image/*"></label><div class="thumbs" id="bQrThumb"></div>`)}
     <div id="discardBox"></div>
   </div>
   <div class="ed-body" id="p-guests" hidden></div>
@@ -131,7 +132,61 @@
       else el.value = draft[k] ?? "";
     });
     document.querySelectorAll("[data-theme]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.theme === draft.theme));
-    drawThumbs();
+    if (!draft.nameSize) $("#f-nameSize").value = "m";
+    const fonts = { ...DEFAULT_FONTS, ...(draft.fonts || {}) };
+    document.querySelectorAll("[data-font]").forEach((el) => (el.value = fonts[el.dataset.font]));
+    drawFontPreview(); drawThumbs(); drawLayout();
+  }
+  function drawFontPreview() {
+    const f = { ...DEFAULT_FONTS, ...(draft.fonts || {}) };
+    const el = $("#fp-script"); if (!el) return;
+    el.style.fontFamily = `"${f.script}", cursive`;
+    el.textContent = [draft.groom, draft.bride].filter((x) => String(x || "").trim()).join(" & ") || "Cô dâu & Chú rể";
+  }
+
+  // ---------- bố cục: thứ tự, ẩn/hiện, căn lề, mục tự thêm ----------
+  const secs = () => (draft.sections = layout(draft));
+  function drawLayout() {
+    const box = $("#layout"); if (!box) return;
+    const list = layout(draft);
+    const AL = [["left", "Trái", "⇤"], ["center", "Giữa", "↔"], ["right", "Phải", "⇥"]];
+    box.innerHTML = list.map((s, i) => `<div class="lay-row${s.show ? "" : " off"}">
+      <div class="lay-top">
+        <button class="ib" type="button" data-lay="up" data-i="${i}" aria-label="Lên trên" ${i === 0 ? "disabled" : ""}>▲</button>
+        <button class="ib" type="button" data-lay="down" data-i="${i}" aria-label="Xuống dưới" ${i === list.length - 1 ? "disabled" : ""}>▼</button>
+        <label class="nm"><input type="checkbox" data-lay="show" data-i="${i}" ${s.show ? "checked" : ""}> ${esc(sectionName(s))}</label>
+        <span class="seg" role="group" aria-label="Căn lề">${AL.map(([v, t, ic]) => `<button class="ib" type="button" data-lay="align" data-v="${v}" data-i="${i}" aria-pressed="${(s.align || "center") === v}" title="Căn ${t}">${ic}</button>`).join("")}</span>
+        ${s.custom ? `<button class="ib danger" type="button" data-lay="del" data-i="${i}" aria-label="Xoá mục">✕</button>` : ""}
+      </div>
+      ${s.custom ? `<div class="lay-custom">
+        <label class="fl">Tiêu đề<input data-cf="title" data-i="${i}" value="${esc(s.title)}" placeholder="VD: Lịch trình trong ngày"></label>
+        <label class="fl">Nội dung<textarea data-cf="text" data-i="${i}" placeholder="Nội dung tuỳ ý, xuống dòng thoải mái">${esc(s.text)}</textarea></label>
+        <label class="fl">Ảnh (không bắt buộc)<input type="file" accept="image/*" data-cimg="${i}"></label>
+        ${s.image ? `<div class="thumbs"><div class="t" style="background-image:url('${esc(src(s.image))}')"><button type="button" data-lay="rmimg" data-i="${i}" aria-label="Xoá ảnh">×</button></div></div>` : ""}
+      </div>` : ""}
+    </div>`).join("");
+  }
+  function layoutClick(e) {
+    const b = e.target.closest("[data-lay]"); if (!b || b.type === "checkbox") return;
+    const list = secs(), i = +b.dataset.i, act = b.dataset.lay;
+    if (act === "up" && i > 0) [list[i - 1], list[i]] = [list[i], list[i - 1]];
+    else if (act === "down" && i < list.length - 1) [list[i + 1], list[i]] = [list[i], list[i + 1]];
+    else if (act === "align") list[i].align = b.dataset.v;
+    else if (act === "rmimg") list[i].image = "";
+    else if (act === "del") {
+      if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "Xoá?"; b.style.width = "auto"; return; }
+      list.splice(i, 1);
+    } else return;
+    setDirty(true); drawLayout(); paint();
+  }
+  function addSection() {
+    const list = secs();
+    const id = "c" + Array.from(crypto.getRandomValues(new Uint8Array(4)), (x) => x.toString(16).padStart(2, "0")).join("");
+    const at = list.findIndex((s) => s.id === "thanks");
+    list.splice(at < 0 ? list.length : at, 0, { id, custom: true, title: "Mục mới", text: "", image: "", show: true, align: "center" });
+    setDirty(true); drawLayout(); paint();
+    const rows = document.querySelectorAll(".lay-row"); const row = rows[at < 0 ? rows.length - 1 : at];
+    row && row.scrollIntoView({ behavior: "smooth", block: "center" }); row && row.querySelector("[data-cf=title]").select();
   }
   function drawThumbs() {
     const one = (id, key) => { $(id).innerHTML = draft[key] ? `<div class="t" style="background-image:url('${esc(src(draft[key]))}')"><button type="button" data-rm="${key}" aria-label="Xoá ảnh">×</button></div>` : ""; };
@@ -162,8 +217,21 @@
   function bind() {
     const ed = $(".editor");
     ed.addEventListener("input", (e) => {
-      const el = e.target; if (!el.dataset.k) return;
+      const el = e.target;
+      if (el.dataset.cf) { secs()[+el.dataset.i][el.dataset.cf] = el.value; setDirty(true); paint(); if (el.dataset.cf === "title") { const nm = el.closest(".lay-row").querySelector(".nm"); nm.lastChild.textContent = " " + (el.value || "Mục mới"); } return; }
+      if (el.dataset.lay === "show") { secs()[+el.dataset.i].show = el.checked; setDirty(true); drawLayout(); paint(); return; }
+      if (el.dataset.font) { draft.fonts = { ...DEFAULT_FONTS, ...(draft.fonts || {}), [el.dataset.font]: el.value }; setDirty(true); drawFontPreview(); paint(); return; }
+      if (!el.dataset.k) return;
+      if (el.dataset.k === "groom" || el.dataset.k === "bride") setTimeout(drawFontPreview);
       draft[el.dataset.k] = el.type === "checkbox" ? el.checked : el.value.trim() === "" && el.type === "url" ? "" : el.value; setDirty(true); paint();
+    });
+    ed.addEventListener("click", layoutClick);
+    $("#addSec").onclick = addSection;
+    ed.addEventListener("change", async (e) => {
+      const ci = e.target.dataset.cimg;
+      if (ci === undefined) return;
+      const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+      try { secs()[+ci].image = await addImage(f, 1400, "image/jpeg"); setDirty(true); drawLayout(); paint(); toast("Đã thêm ảnh. Bấm Lưu thiệp để đăng."); } catch (x) { toast(x.message); }
     });
     ed.addEventListener("change", async (e) => { if (e.target.id === "f-sheetUrl") { wishes = await loadWishes(draft.sheetUrl); paint(); } });
     ed.addEventListener("click", (e) => {
@@ -205,7 +273,7 @@
     $("#save").onclick = async () => {
       const btn = $("#save"); btn.disabled = true;
       try {
-        const used = new Set([draft.cover, draft.gQr, draft.bQr, ...(draft.album || [])]);
+        const used = new Set([draft.cover, draft.gQr, draft.bQr, ...(draft.album || []), ...(draft.sections || []).map((x) => x.image)]);
         const todo = Object.keys(pending).filter((p) => used.has(p));
         let n = 0;
         for (const p of todo) {

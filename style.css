@@ -21,7 +21,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 .frame::before{content:"";position:absolute;inset:5px;border:1px solid var(--ac)}
 .motif{font-family:serif;font-size:58px;color:var(--ac);line-height:1}
 .small{font-size:11px;letter-spacing:.28em;text-transform:uppercase;opacity:.85}
-.names{font-family:var(--f-script);font-size:54px;line-height:1.1;color:var(--ac);overflow-wrap:anywhere}
+.names{font-family:var(--f-script);font-size:var(--name-size,54px);line-height:1.1;color:var(--ac);overflow-wrap:anywhere}
 .amp{font-family:var(--f-display);font-style:italic;font-size:26px;opacity:.8}
 .bigdate{font-family:var(--f-display);font-size:24px;font-weight:600;letter-spacing:.08em;font-variant-numeric:tabular-nums}
 .photo{width:180px;max-width:60%;aspect-ratio:3/4;border-radius:100px 100px 10px 10px;margin:10px auto;background:var(--soft) center/cover no-repeat;border:2px solid var(--ac);display:grid;place-items:center;font-family:var(--f-script);font-size:44px;color:var(--ac)}
@@ -136,3 +136,33 @@ details.grp > summary small{display:block;font-weight:400;color:var(--ui-muted);
 .pill.yes{background:#e3f3e6;color:#1d6b33}.pill.no{background:#f6e3e3;color:#8e1b1b}.pill.hid{background:#eee;color:#555}
 .linkbox{display:flex;gap:6px}
 .linkbox input{flex:1;min-width:0;border:1px solid var(--ui-line);border-radius:9px;padding:8px 10px;background:var(--ui-2);font-size:13px}
+
+/* ===== font, căn lề từng mục ===== */
+.inv{font-family:var(--f-body)}
+.sec{--ml:auto;--mr:auto;--jc:center;--ai:center}
+.sec.al-left{text-align:left;--ml:0;--mr:auto;--jc:flex-start;--ai:flex-start}
+.sec.al-right{text-align:right;--ml:auto;--mr:0;--jc:flex-end;--ai:flex-end}
+.sec.cover{align-items:var(--ai)}
+.sec .p,.sec .events,.sec .cal,.sec .photo,.sec .wishes,.inv .sec form,.inv .sec .done,.sec .cards.one,.sec .cimg{margin-left:var(--ml);margin-right:var(--mr)}
+.sec .count{justify-content:var(--jc)}
+.sec.al-left .inv form,.sec.al-right .inv form{text-align:inherit}
+.parents.one{grid-template-columns:1fr}
+.cards.one{grid-template-columns:1fr;max-width:240px}
+.cimg{display:block;width:100%;max-width:360px;border-radius:10px;margin-bottom:14px;cursor:zoom-in}
+
+/* ===== bảng bố cục trong admin ===== */
+.lay{display:grid;gap:8px}
+.lay-row{background:var(--ui-2);border:1px solid var(--ui-line);border-radius:12px;padding:8px 10px;display:grid;gap:8px}
+.lay-row.off{opacity:.55}
+.lay-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lay-top .nm{flex:1;min-width:110px;font-weight:600;font-size:13.5px;overflow-wrap:anywhere}
+.ib{border:1px solid var(--ui-line);background:var(--ui);border-radius:8px;min-width:32px;height:32px;padding:0 8px;cursor:pointer;font-size:13px;line-height:1}
+.ib[aria-pressed="true"]{background:var(--ui-ink);color:var(--ui);border-color:var(--ui-ink)}
+.ib:disabled{opacity:.35;cursor:default}
+.ib.danger{color:var(--ui-accent)}
+.seg{display:inline-flex}
+.seg .ib{border-radius:0;margin-left:-1px}
+.seg .ib:first-child{border-radius:8px 0 0 8px;margin-left:0}
+.seg .ib:last-child{border-radius:0 8px 8px 0}
+.lay-custom{display:grid;gap:8px}
+.fontprev{font-size:22px;line-height:1.2;padding:6px 0;color:var(--ui-ink)}
