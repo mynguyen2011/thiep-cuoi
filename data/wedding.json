@@ -34,7 +34,7 @@
   "bHolder": "",
   "thanks": "Sự hiện diện của quý khách là niềm vinh hạnh cho gia đình chúng tôi.",
   "bilingual": false,
-  "cover": "images/3025dc0a7c5427241353.jpg",
+  "cover": "images/221ab74abad09706dcf1.jpg",
   "album": [],
   "gQr": "images/10c61c1d71af0e683ef1.png",
   "bQr": "",
@@ -46,5 +46,57 @@
     "script": "Great Vibes",
     "display": "Lora",
     "body": "Be Vietnam Pro"
-  }
+  },
+  "sections": [
+    {
+      "align": "center",
+      "show": true,
+      "id": "cover"
+    },
+    {
+      "align": "center",
+      "show": true,
+      "id": "invite"
+    },
+    {
+      "align": "center",
+      "show": true,
+      "id": "party"
+    },
+    {
+      "align": "center",
+      "show": true,
+      "id": "venue"
+    },
+    {
+      "align": "center",
+      "show": true,
+      "id": "story"
+    },
+    {
+      "align": "center",
+      "show": false,
+      "id": "album"
+    },
+    {
+      "align": "center",
+      "show": false,
+      "id": "rsvp"
+    },
+    {
+      "align": "center",
+      "show": true,
+      "id": "wishes"
+    },
+    {
+      "align": "center",
+      "show": true,
+      "id": "gift"
+    },
+    {
+      "align": "center",
+      "show": true,
+      "id": "thanks"
+    }
+  ]
 }
