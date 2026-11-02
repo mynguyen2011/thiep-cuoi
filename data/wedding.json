@@ -41,5 +41,10 @@
   "rsvpOpen": true,
   "wishesOpen": true,
   "sheetUrl": "",
-  "sheetLink": ""
+  "sheetLink": "",
+  "fonts": {
+    "script": "Great Vibes",
+    "display": "Lora",
+    "body": "Be Vietnam Pro"
+  }
 }
