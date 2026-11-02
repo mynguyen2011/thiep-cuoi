@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Thiệp cưới</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Great+Vibes&display=swap">
+<link rel="stylesheet" href="style.css">
+<style>body{margin:0}</style>
+</head>
+<body>
+<div id="app"><div class="loading">Đang mở thiệp…</div></div>
+<script src="invite.js"></script>
+<script>
+(async function () {
+  const { render, tick, toast, wishesHtml, esc } = Invite;
+  const app = document.getElementById("app");
+  let data;
+  try { data = await fetch("data/wedding.json?t=" + Date.now(), { cache: "no-store" }).then((r) => r.json()); }
+  catch { app.innerHTML = '<div class="loading">Không mở được thiệp. Kiểm tra mạng rồi tải lại trang.</div>'; return; }
+  const api = data.sheetUrl || "";
+  if (!api) { data.rsvpOpen = false; data.wishesOpen = false; }
+  if (data.groom && data.bride) document.title = "Thiệp cưới " + data.groom + " & " + data.bride;
+  const getWishes = () => api && data.wishesOpen !== false
+    ? fetch(api + (api.includes("?") ? "&" : "?") + "action=wishes").then((r) => r.json()).catch(() => [])
+    : Promise.resolve([]);
+  app.innerHTML = render(data, { wishes: [] });
+  tick();
+  getWishes().then((w) => { const el = document.getElementById("wishList"); if (el) el.innerHTML = wishesHtml(w); });
+
+  // Gửi dạng text/plain để Google Apps Script nhận được (không cần preflight CORS)
+  async function post(body) {
+    const r = await fetch(api, { method: "POST", body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || j.error) throw new Error(j.error || "Chưa gửi được, thử lại sau.");
+  }
+  document.addEventListener("submit", async (e) => {
+    const f = e.target;
+    if (f.id !== "rsvpForm" && f.id !== "wishForm") return;
+    e.preventDefault();
+    const fd = Object.fromEntries(new FormData(f));
+    const btn = f.querySelector("button"); btn.disabled = true;
+    const err = f.querySelector(".err-i"); err.textContent = "";
+    try {
+      if (f.id === "rsvpForm") {
+        if (!fd.name.trim()) throw new Error("Vui lòng nhập tên của bạn.");
+        await post({ type: "rsvp", ...fd });
+        document.getElementById("rsvpBox").innerHTML = '<div class="done">' + (fd.attend === "yes"
+          ? "Cảm ơn <b>" + esc(fd.name) + "</b>! Gia đình rất mong được gặp bạn."
+          : "Cảm ơn <b>" + esc(fd.name) + "</b> đã báo cho gia đình.") + "</div>";
+      } else {
+        if (!fd.name.trim() || !fd.text.trim()) throw new Error("Vui lòng nhập tên và lời chúc.");
+        await post({ type: "wish", ...fd });
+        f.reset(); toast("Đã gửi lời chúc. Cảm ơn bạn!");
+        document.getElementById("wishList").innerHTML = wishesHtml(await getWishes());
+      }
+    } catch (x) { err.textContent = x.message; }
+    finally { btn.disabled = false; }
+  });
+})();
+</script>
+</body>
+</html>
